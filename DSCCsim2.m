@@ -1,5 +1,5 @@
 %% MAIN FUNCTION DEFINED
-function [zpos,zdes,force] = DSCCsim2 (mass,B,Q,~,L,times,z_f,K_a)
+function [zpos,zdes,force,wRq] = DSCCsim2 (mass,B,Q,~,L,times,z_f,K_a)
     %% GLOBAL VARIABLES
     global n g
     global t tm tf dt 
