@@ -1,6 +1,6 @@
 function [W,F,Mo] = motormodel2(wdes, w_init)
 global kf km k t n
-k =  20;
+k =  20; %value (km) from Mellinger, change it to adapt it to our drones
 W = zeros(4*n,1);
 F = zeros(4*n,1);
 Mo = zeros(4*n,1);

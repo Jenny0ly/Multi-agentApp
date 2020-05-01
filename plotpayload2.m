@@ -1,12 +1,12 @@
-function plotpayload2(p,beam)
+function plotpayload2(beam)
     %rectangular prism
     %need width(w),height(h),length(l) in meters
     w = beam(1);h = beam(2);l = beam(3);
 
     %face 2
-    l_start = p(1)-l/2;l_end = p(1)+l/2;
-    w_start = p(2)+w/2;w_end = p(2)-w;%el prisma va hacia atras de mi dibujo
-    h_start = p(3)-h;h_end = p(3);
+    l_start = 0;l_end = l;
+    w_start = 0;w_end = w; 
+    h_start = 0;h_end = h;
     vert = [l_start w_start h_start;...
             l_end w_start h_start;...
             l_end w_end h_start;...

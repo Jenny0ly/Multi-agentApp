@@ -1,13 +1,13 @@
 function [udes,Edes] = trajectoryControl(ddrB,yawT,wb,Eb,Edes_ant,mass)
 global dt
 
-    [Edes,Fdes] = position_control (ddrB,yawT,mass);
+    %position control 
+    [Edes,Fdes] = position_control(ddrB,yawT,mass);
     %attitude control 
-    wbdes = ((Edes-Edes_ant)/dt);
+    wbdes = ((Edes-Edes_ant)/dt); %desired angular velocity
     [Mxdes,Mydes,Mzdes] = attitude(Eb,Edes,wb,wbdes);
     
-    udes = [Fdes;Mxdes;Mydes;Mzdes];
-    
+    udes = [Fdes;Mxdes;Mydes;Mzdes]; %desired input
 end
 
 
@@ -29,14 +29,14 @@ kpz = 0.5;kdz = 0.5;
 end
 
 function [Edes,Fdes] = position_control (ddrB,yawT,mass) %100Hz
-global g 
+global g
     
-    %desired angles and force
+    %near hover assumption controller
     phides = 1/g*(ddrB(1)*sind(yawT)-ddrB(2)*cosd(yawT));
     thetades = 1/g*(ddrB(1)*cosd(yawT)+ddrB(2)*sin(yawT));
     yawdes = yawT;
-    Fdes = mass*(ddrB(3)+g);
-
-    Edes = [phides;thetades;yawdes];
     
+    Fdes = mass*(ddrB(3)+g); %desired force
+%     Fdes = (mass*ddrB(3))/(8*kf*wh); %desired force
+    Edes = [phides;thetades;yawdes]; %desired euler angles 
 end

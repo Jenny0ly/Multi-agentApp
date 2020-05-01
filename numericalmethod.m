@@ -1,8 +1,9 @@
-function [rB,drB] = numericalmethod (ddrB,ddrB_ant,drB_ant,Q1_ant)
-    global dt
-    %% obtain linear position
-    %first obatain linear velocity
-    drB = dt*(ddrB + ddrB_ant)/2;
-    %obtain linear position 
-    rB = dt*(drB + drB_ant)/2+Q1_ant;
+function [r,dr] = numericalmethod (ddr,ddr_ant,dr_ant,Q_ant)
+    global dt n th t 
+    %linear velocity
+    dr = dt*(ddr + ddr_ant)/2;
+    %linear position  
+    for i=1:n
+        r(:,i) = dt*(dr + dr_ant)/2 + Q_ant(:,i);
+    end
 end

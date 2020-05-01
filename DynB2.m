@@ -1,4 +1,4 @@
-function [u] = DynB2(Xr,yaw)
+function [A,u] = DynB2(Xr,yaw)
     global n 
     v = [];
     c = cosd(yaw);s = sind(yaw);
@@ -22,8 +22,8 @@ function [u] = DynB2(Xr,yaw)
         v = [v vv];
     end
     H = diag(v);
-    %matrix (8) in mellinger's paper
+    %equation (8) in mellinger's paper
     mA = A*H^-2*A';
-    %input
+    %[uF, uMx, uMy, uMz] of equation (7) using equation (6) to compute it  
     u = H^-2*A'*inv(mA);
 end
