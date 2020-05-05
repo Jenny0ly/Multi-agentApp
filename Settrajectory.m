@@ -1,7 +1,7 @@
 function [ddrB,yawT,rT] = Settrajectory(B,Euler,rB,drB,z_f,K)
 global dt t tl th tf path_b
 global ra angle Slength distance
-global v1 v2 cir_cle pp square xo yo 
+global v1 v2 cir_cle pp square line xo yo 
 m_p = (z_f-B(3))/tl;    %velocity
     %lift
     if t <= tl
@@ -16,6 +16,7 @@ m_p = (z_f-B(3))/tl;    %velocity
     else
     %circle
         switch path_b
+            %circle
             case 'c'
                 if t == th+dt
                     %p,po,p1 points in the parallel plane 
@@ -43,7 +44,7 @@ m_p = (z_f-B(3))/tl;    %velocity
                 ydes = ci(2);
                 zdes = ci(3); 
                 cir_cle = [xdes;ydes;zdes];
-                
+            %square    
             case 's'
                 vel = (4*Slength)/(tf-th);
                 timeSide = Slength/vel;
@@ -80,9 +81,30 @@ m_p = (z_f-B(3))/tl;    %velocity
                     zdes = z_f;                 
                 end         
                 square = [xdes;ydes;zdes];
+            %line (forward and back)
+            case 'l'
+                vel = 2*distance/(tf-th);
+                ti_me = t-th;
+                if t == th+dt
+                    yo = B(2);  
+                elseif ti_me == (tf-th)/2 + dt
+                    yo = -vel*(tf-th)/2+yo;
+                end
+                if ti_me <= (tf-th)/2
+                    xdes = B(1);
+                    ydes = -vel*ti_me+yo;
+                    zdes = z_f;
+                else
+                    xdes = B(1);
+                    ydes = vel*ti_me/2+yo;
+                    zdes = z_f;
+                    if ti_me == 10
+                       disp('llegue') 
+                    end
+                end
+                line = [xdes;ydes;zdes];
         end
     end
-    
 
     rT = [xdes;ydes;zdes];
     yawT = Euler(3); %desired yaw angle
@@ -105,9 +127,11 @@ kp = K(1);kd = K(2);
         drT = [0;0;0];  %derivative of rT
     else
         switch path_b
+            %circle
             case 'c'
                 ti_me = t-th+pi;
                 drT = -ra*sin(ti_me)*v1+ra*cos(ti_me)*v2;
+            %square
             case 's'
                 vel = (4*Slength)/(tf-th);
                 timeSide = Slength/vel;
@@ -125,6 +149,15 @@ kp = K(1);kd = K(2);
                 else
                     drT = [-vel;0;0];
                 end
+            %line (forward and back)
+            case 'l'
+                vel = 2*distance/(tf-th);
+                ti_me = t-th;
+               if ti_me <= (tf-th)/2
+                   drT = [0;-vel;0];
+               else
+                   drT = [0;vel;0];
+               end
         end        
         
     end

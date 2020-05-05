@@ -4,22 +4,25 @@ close all
     %% GLOBAL VARIABLES
     global n g
     global t tl th tf dt 
-    global path_b data1_traj data2_traj cir_cle cp square
+    global path_b data1_traj data2_traj cir_cle cp square line
     global ra angle Slength distance
     %init time(t),lift time (tl),hovering time(th)    
     t = times(1);tl = times(2);th = times(3); 
     dt = 0.25;
     switch path_b
+        %circle
         case 'c'
             tf = times(end)+2*pi+dt+1;
             ra = data1_traj;
             angle = data2_traj;
+        %square
         case 's'
             Slength = data1_traj;
             tf = th+data2_traj;
+        %line (forward and back)
         case 'l'
             distance = data1_traj;
-            tf = th+data2_traj+dt; 
+            tf = th+data2_traj; 
     end
     g = 9.81;
     cp = [0;0;0];
@@ -59,7 +62,6 @@ close all
         plotrefsys2(Q(:,i),wRq);
     end
     plotpayload2(beam)            
-%     legend('CoM','Drones location','Location','northeast')
     
     %% initial values 
     wq = [0;0;0]; %angular velocity of drone 
@@ -108,10 +110,13 @@ close all
             if t>th
                cc = th/dt; 
                switch path_b
+                   %circle
                    case 'c'
                        cp(:,i-cc) = cir_cle; 
                    case 's'
                        cp(:,i-cc) = square; 
+                   case 'l'
+                       cp(:,i-cc) = line; 
                end
             end
             Bx(i+1) = rB(1);By(i+1) = rB(2);Bz(i+1) = rB(3);
@@ -172,6 +177,7 @@ function graphPos(zpos,zdes)
     legend('actual position','desired position','Location','southeast')
     xlabel('time [s]')
     ylabel('z Position [m]')
+    legend('boxoff')
 end
 
 function graphFor(force)
@@ -188,9 +194,10 @@ function graphFor(force)
         name = ['Drone ', num2str(i)]; 
         name_leg = [name_leg;name];
     end 
-    legend(name_leg,'Location','southeast');
+    legend(name_leg,'Location','southeast')
     xlabel('time [s]')
     ylabel('Force [N]')
+    legend('boxoff')
 end
 
 function graphtrajec(Bx,By,Bz,Qx,Qy,Qz)
@@ -202,6 +209,7 @@ global n pt1 pt2 cp
         end
         plot3(cp(1,:),cp(2,:),cp(3,:));
         legend([pt1 pt2 pt3],{'CoM','Drones location','Trajectory'},'Location','northeast')
+        legend('boxoff')
 end
 
 function graph3dtraj(Bx,By,Bz,Qx,Qy,Qz)
@@ -217,7 +225,8 @@ global n cp th dt
     title('3D trajectory Top view')
     xlabel('x [m]')
     ylabel('y [m]')
-    legend('desired trajectory', 'CoM trajectory','Drone trajectory')
+    legend('desired trajectory', 'CoM trajectory','Drone trajectory','Location','southeast')
+    legend('boxoff')
     
     figure(5)
     plot(cp(2,:),cp(3,:),'b')
@@ -232,4 +241,5 @@ global n cp th dt
     xlabel('y [m]')
     ylabel('z [m]')
     legend('desired trajectory', 'CoM trajectory','Drone trajectory','Location','southeast')
+    legend('boxoff')
 end

@@ -16,6 +16,7 @@ m_p = (z_f-B(3))/tl;    %velocity
     else
     %circle
         switch path_b
+            %circle
             case 'c'
                 if t == th+dt
                     %p,po,p1 points in the parallel plane 
@@ -43,13 +44,11 @@ m_p = (z_f-B(3))/tl;    %velocity
                 ydes = ci(2);
                 zdes = ci(3); 
                 cir_cle = [xdes;ydes;zdes];
-                
+            %square    
             case 's'
-                vel = (4*Slength)/tf;
+                vel = (4*Slength)/(tf-th);
                 timeSide = Slength/vel;
                 ti_me = t-th;
-%                 timeSide = (tf-th-dt)/(4*Slength);
-%                 vel = Slength/timeSide;
                 %first side
                 if t == th+dt
                     xo = B(1);
@@ -82,6 +81,15 @@ m_p = (z_f-B(3))/tl;    %velocity
                     zdes = z_f;                 
                 end         
                 square = [xdes;ydes;zdes];
+            %line (forward and back)
+            case 'l'
+                vel = 2*distance/(tf-th);
+                ti_me = t-th;
+                if 
+                    
+                else
+                    
+                end
         end
     end
     
@@ -107,13 +115,15 @@ kp = K(1);kd = K(2);
         drT = [0;0;0];  %derivative of rT
     else
         switch path_b
+            %circle
             case 'c'
                 ti_me = t-th+pi;
                 drT = -ra*sin(ti_me)*v1+ra*cos(ti_me)*v2;
+            %square
             case 's'
-                timeSide = (tf-th)/(4*Slength);
-                ti_me = t-th+dt;
-                vel = Slength/timeSide;
+                vel = (4*Slength)/(tf-th);
+                timeSide = Slength/vel;
+                ti_me = t-th;
                 %first side
                 if ti_me <= timeSide
                     drT = [0;-vel;0];
@@ -127,6 +137,9 @@ kp = K(1);kd = K(2);
                 else
                     drT = [-vel;0;0];
                 end
+            %line (forward and back)
+            case 'l'
+               
         end        
         
     end
