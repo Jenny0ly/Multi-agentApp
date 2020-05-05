@@ -19,7 +19,7 @@ close all
             tf = th+data2_traj;
         case 'l'
             distance = data1_traj;
-            tf = th+data2_traj; 
+            tf = th+data2_traj+dt; 
     end
     g = 9.81;
     cp = [0;0;0];

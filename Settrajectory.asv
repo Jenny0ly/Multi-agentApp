@@ -45,9 +45,11 @@ m_p = (z_f-B(3))/tl;    %velocity
                 cir_cle = [xdes;ydes;zdes];
                 
             case 's'
-                vel = (4*Slength)/(tf-th);
+                vel = (4*Slength)/tf;
                 timeSide = Slength/vel;
                 ti_me = t-th;
+%                 timeSide = (tf-th-dt)/(4*Slength);
+%                 vel = Slength/timeSide;
                 %first side
                 if t == th+dt
                     xo = B(1);
@@ -109,9 +111,9 @@ kp = K(1);kd = K(2);
                 ti_me = t-th+pi;
                 drT = -ra*sin(ti_me)*v1+ra*cos(ti_me)*v2;
             case 's'
-                vel = (4*Slength)/(tf-th);
-                timeSide = Slength/vel;
-                ti_me = t-th;
+                timeSide = (tf-th)/(4*Slength);
+                ti_me = t-th+dt;
+                vel = Slength/timeSide;
                 %first side
                 if ti_me <= timeSide
                     drT = [0;-vel;0];
