@@ -1,6 +1,7 @@
-function [udes,Edes] = trajectoryControl(ddrB,yawT,wb,Eb,Edes_ant,mass)
+function [udes,Edes] = trajectoryControl(ddrB,wb,Eb,Edes_ant,mass)
 global dt
 
+    yawT = Eb(3);
     %position control 
     [Edes,Fdes] = position_control(ddrB,yawT,mass);
     %attitude control 

@@ -23,7 +23,7 @@ v2 = v2/norm(v2);
 
 
 % t = linspace(0,2*pi);
-t = pi:0.1:4*pi+0.1;
+t = pi:0.1:4*pi;
 for i=1:length(t)
     c(:,i) = p+r*cos(t(i))*v1+r*sin(t(i))*v2;
 end

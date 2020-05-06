@@ -1,4 +1,4 @@
-function [ddrB,yawT,rT] = Settrajectory(B,Euler,rB,drB,z_f,K)
+function [ddrB,rT] = Settrajectory(B,rB,drB,z_f,K)
 global dt t tl th tf path_b
 global ra angle Slength distance
 global v1 v2 cir_cle pp square line xo yo 
@@ -14,14 +14,14 @@ m_p = (z_f-B(3))/tl;    %velocity
         ydes = B(2);
         zdes = m_p*tl+B(3); %zf = value --> zf = vtl+z_o
     else
-    %circle
+    %% 3D trajectory
         switch path_b
             %circle
             case 'c'
                 if t == th+dt
                     %p,po,p1 points in the parallel plane 
                     %bottom point 
-                    po = rB;
+                    po = [B(1);B(2);z_f];
                     %center point
                     c_y = po(2)+ra*cosd(angle);
                     d = sqrt((ra)^2-(c_y-po(2))^2);
@@ -107,7 +107,7 @@ m_p = (z_f-B(3))/tl;    %velocity
     end
 
     rT = [xdes;ydes;zdes];
-    yawT = Euler(3); %desired yaw angle
+%     yawT = Euler(3); %desired yaw angle
     %3D trajectory (desired acceleration)
     [ddrB] = desiredacc(rT,rB,drB,K,m_p);
 end

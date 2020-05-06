@@ -1,31 +1,30 @@
 %% MAIN FUNCTION DEFINED
-function [zpos,zdes,force,wRq,Bx,By,Bz,Qx,Qy,Qz] = DSCCsim2 (mass,B,Q,beam,L,times,z_f,K_a)
+function [zpos,zdes,force,wRq,wRb,Bx,By,Bz,Qx,Qy,Qz] = DSCCsim2 (mass,B,Q,beam,L,times,z_f,K_a)
 close all
     %% GLOBAL VARIABLES
     global n g
     global t tl th tf dt 
     global path_b data1_traj data2_traj cir_cle cp square line
     global ra angle Slength distance
-    %init time(t),lift time (tl),hovering time(th)    
+    %init time(t),lift time (tl),hovering time(th),final time(tf)    
     t = times(1);tl = times(2);th = times(3); 
     dt = 0.25;
     switch path_b
         %circle
         case 'c'
-            tf = times(end)+2*pi+dt+1;
-            ra = data1_traj;
-            angle = data2_traj;
+            tf = times(end)+2*pi+dt;
+            ra = data1_traj; %radius 
+            angle = data2_traj; %angle
         %square
         case 's'
-            Slength = data1_traj;
+            Slength = data1_traj; %side length
             tf = th+data2_traj;
         %line (forward and back)
         case 'l'
-            distance = data1_traj;
+            distance = data1_traj; %distance forward
             tf = th+data2_traj; 
     end
     g = 9.81;
-    cp = [0;0;0];
     %% DISPLAY INPUT VALUES
     % total mass 
     sentence = ['Total mass is: ', num2str(mass)];
@@ -49,30 +48,32 @@ close all
     %B      Body frame     (xb,yb,zb) coordinates of CoM of payload
     Eb = [0;0;0]; %euler angles for payload
     %Qi      quad_ith frame     (xqi,yqi,zqi) 
-    Euler = [0;0;0]; %euler angles for quads (same for everyone)!
+    Euler = [0;0;45]; %euler angles for quads (same for everyone)!
     %relative yaw angle of Q frame wrt to B frame
-    yaw = 0; %assume 0 (same orientation for everyone)!
+    yaw = 45; %(same orientation for everyone)!
     [Xr,wRq] = quad2(Q,B,Euler); %relative position and rotation matrix
-    [wRb,bRq] = payload2(Eb,wRq);  %rotation matrices
+    [wRb,bRq] = payload2(Eb,wRq,Euler);  %rotation matrices
     %% 3D view of beam 
     figure(1)
     initbeam(B) %plots position of CoM
+    plotrefsys2(B,wRb); %plot axis B frame 
     %plot axis of Qi frame 
     for i=1:n
         plotrefsys2(Q(:,i),wRq);
     end
     plotpayload2(beam)            
     
-    %% initial values 
+    %% initial conditions 
     wq = [0;0;0]; %angular velocity of drone 
     drq = [0;0;0]; %linear velocity of drone
     Edes_ant = [0;0;0];
     ddrB_ant = [0;0;0];
     zpos = B(3);zdes = B(3);
     force = zeros(1,n);
+    cp = [B(1);B(2);z_f];
     
-    Bx = B(1);By = B(2);Bz = B(3);
-    Qx = zeros(n,1);Qy = zeros(n,1);Qz = zeros(n,1);
+    Bx = B(1);By = B(2);Bz = B(3); %actual position of Beam
+    Qx = zeros(n,1);Qy = zeros(n,1);Qz = zeros(n,1); %actual position of drones
     for i=1:n
         Qx(i,1) = Q(1,i);
         Qy(i,1) = Q(2,i);
@@ -90,19 +91,19 @@ close all
             wb = bRq*wq;            %angular velocity of CoM
             drB = drq-cross(wb,wRb*Xr(:,1));   %linear velocity of CoM
             
-            [ddrB,yawT,rT] = Settrajectory(B,Euler,rB,drB,z_f,K_a);
-            [udes,Edes] = trajectoryControl(ddrB,yawT,wb,Eb,Edes_ant,mass);
+            [ddrB,rT] = Settrajectory(B,rB,drB,z_f,K_a);
+            [udes,Edes] = trajectoryControl(ddrB,wb,Eb,Edes_ant,mass);
             zpos(i+1) = B(3);
             zdes(i+1) = rT(3);
-            Bx(i+1) = B(1);By(i+1) = B(2);Bz(i+1) = B(3);
+            Bx(i+1) = rB(1);By(i+1) = rB(2);Bz(i+1) = rB(3);
         else 
             [Q,drq] = numericalmethod(ddrB,ddrB_ant,drB_ant,Q_ant); %position and linear velocity of drone
             rB = Q(:,1)-wRb*Xr(:,1);       %position of CoM, use drone 1
-            [wq,~] =  gyroscope(Euler,Euler_ant,rB,rB_ant); %angular velocity of drone
+            [wq,~] =  gyroscope(Eb,Eb_ant,rB,rB_ant); %angular velocity of drone
             wb = bRq*wq;            %angular velocity of CoM
             drB = drq-cross(wb,wRb*Xr(:,1));   %velocity of CoM
-            [ddrB,yawT,rT] = Settrajectory(B,Euler,rB,drB,z_f,K_a);
-            [udes,Edes] = trajectoryControl(ddrB,yawT,wb,Eb,Edes_ant,mass);
+            [ddrB,rT] = Settrajectory(B,rB,drB,z_f,K_a);
+            [udes,Edes] = trajectoryControl(ddrB,wb,Eb,Edes_ant,mass);
             if t<=th
                 zpos(i+1) = rB(3);
                 zdes(i+1) = rT(3);
@@ -112,13 +113,13 @@ close all
                switch path_b
                    %circle
                    case 'c'
-                       cp(:,i-cc) = cir_cle; 
+                       cp(:,i-cc+1) = cir_cle; 
                    %square
                    case 's'
-                       cp(:,i-cc) = square; 
+                       cp(:,i-cc+1) = square; 
                    %line (forward and back)
                    case 'l'
-                       cp(:,i-cc) = line; 
+                       cp(:,i-cc+1) = line; 
                end
             end
             Bx(i+1) = rB(1);By(i+1) = rB(2);Bz(i+1) = rB(3);
@@ -151,7 +152,7 @@ close all
         w_init = W;
         drB_ant = drB;
         rB_ant = rB;
-        Euler_ant = Edes;
+        Eb_ant = Eb;
         Edes_ant = Edes;
         Q_ant = Q;
         
