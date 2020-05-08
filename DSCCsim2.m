@@ -6,6 +6,7 @@ close all
     global t tl th tf dt 
     global path_b data1_traj data2_traj cir_cle cp square line
     global ra angle Slength distance
+    global pt1 pt2
     %init time(t),lift time (tl),hovering time(th),final time(tf)    
     t = times(1);tl = times(2);th = times(3); 
     dt = 0.25;
@@ -55,13 +56,13 @@ close all
     [wRb,bRq] = payload2(Eb,wRq,Euler);  %rotation matrices
     %% 3D view of beam 
     figure(1)
-    initbeam(B) %plots position of CoM
-    plotrefsys2(B,wRb); %plot axis B frame 
+    initbeam(B,wRb) %plots position of CoM
     %plot axis of Qi frame 
     for i=1:n
         plotrefsys2(Q(:,i),wRq);
     end
-    plotpayload2(beam)            
+    plotpayload2(beam)     
+%     legend([pt1 pt2],{'CoM','Drones location'},'Location','northeast')
     
     %% initial conditions 
     wq = [0;0;0]; %angular velocity of drone 
@@ -71,6 +72,7 @@ close all
     zpos = B(3);zdes = B(3);
     force = zeros(1,n);
     cp = [B(1);B(2);z_f];
+    error = zeros(3,1);
     
     Bx = B(1);By = B(2);Bz = B(3); %actual position of Beam
     Qx = zeros(n,1);Qy = zeros(n,1);Qz = zeros(n,1); %actual position of drones
@@ -96,6 +98,7 @@ close all
             zpos(i+1) = B(3);
             zdes(i+1) = rT(3);
             Bx(i+1) = rB(1);By(i+1) = rB(2);Bz(i+1) = rB(3);
+            error(3,i) = (zdes(i+1)-zpos(i+1))';
         else 
             [Q,drq] = numericalmethod(ddrB,ddrB_ant,drB_ant,Q_ant); %position and linear velocity of drone
             rB = Q(:,1)-wRb*Xr(:,1);       %position of CoM, use drone 1
@@ -107,20 +110,7 @@ close all
             if t<=th
                 zpos(i+1) = rB(3);
                 zdes(i+1) = rT(3);
-            end
-            if t>th
-               cc = th/dt; 
-               switch path_b
-                   %circle
-                   case 'c'
-                       cp(:,i-cc+1) = cir_cle; 
-                   %square
-                   case 's'
-                       cp(:,i-cc+1) = square; 
-                   %line (forward and back)
-                   case 'l'
-                       cp(:,i-cc+1) = line; 
-               end
+                error(3,i) = (zdes(i+1)-zpos(i+1))';
             end
             Bx(i+1) = rB(1);By(i+1) = rB(2);Bz(i+1) = rB(3);
             ddrB_ant = ddrB;
@@ -129,7 +119,24 @@ close all
                 Qy(k,i-1) = Q(2,k);
                 Qz(k,i-1) = Q(3,k);
             end
-        end
+            if t>th
+               cc = th/dt; 
+               switch path_b
+                   %circle
+                   case 'c'
+                       cp(:,i-cc+1) = cir_cle; 
+                       error(:,i-1) = cir_cle-[Bx(i+1);By(i+1);Bz(i+1)];
+                   %square
+                   case 's'
+                       cp(:,i-cc+1) = square; 
+                       error(:,i-1) = cir_cle-[Bx(i+1);By(i+1);Bz(i+1)];
+                   %line (forward and back)
+                   case 'l'
+                       cp(:,i-cc+1) = line; 
+                       error(:,i-1) = cir_cle-[Bx(i+1);By(i+1);Bz(i+1)];
+               end
+            end
+        end  
         
         %commanded velocity
         [wdes,u_law] = control2(u,L,udes,mass);
@@ -165,6 +172,12 @@ close all
     graphFor(force)
     graphtrajec(Bx,By,Bz,Qx,Qy,Qz)    
     graph3dtraj(Bx,By,Bz,Qx,Qy,Qz)
+    L_inf = [max(abs(error(1,:)));max(abs(error(2,:)));max(abs(error(3,:)))] %infinity norm
+    [rw cl] = size(error);
+    L1 = sum(abs(error),2)/(cl+1) %norm 1   sum columns sum(error,2)
+    L2 = sqrt(sum(error.^2,2)/(cl+1))
+%     [row, col] = find(error == L_inf) %position of max error
+%     t_err = col*dt %time where max error occurs
 end
 
 function graphPos(zpos,zdes)
@@ -210,9 +223,8 @@ global n pt1 pt2 cp
         for i=1:n
            pt3 = plot3(Qx(i,:),Qy(i,:),Qz(i,:), '--');
         end
-        plot3(cp(1,:),cp(2,:),cp(3,:));
+        %plot3(cp(1,:),cp(2,:),cp(3,:));
         legend([pt1 pt2 pt3],{'CoM','Drones location','Trajectory'},'Location','northeast')
-        legend('boxoff')
 end
 
 function graph3dtraj(Bx,By,Bz,Qx,Qy,Qz)

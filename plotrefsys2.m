@@ -19,5 +19,4 @@ global pt2
     ymin = -2;ymax = 6.5;
     zmin = 0;zmax = 6.5; 
     axis([xmin xmax ymin ymax zmin zmax])
-
 end

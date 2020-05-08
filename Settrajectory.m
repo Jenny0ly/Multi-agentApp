@@ -98,9 +98,6 @@ m_p = (z_f-B(3))/tl;    %velocity
                     xdes = B(1);
                     ydes = vel*ti_me/2+yo;
                     zdes = z_f;
-                    if ti_me == 10
-                       disp('llegue') 
-                    end
                 end
                 line = [xdes;ydes;zdes];
         end
